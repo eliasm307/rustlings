@@ -188,7 +188,7 @@ fn open_exercise_in_vs_code(exercise_path: &PathBuf) {
         .strip_prefix(r"\\?\")
         .unwrap_or(exercise_abs_path);
 
-    println!("Absolute path: {}", exercise_abs_path);
+    println!("Opening failed exercise ({exercise_abs_path})...");
 
     // open exercise in vs code
     std::process::Command::new("cmd")
