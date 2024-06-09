@@ -1,7 +1,7 @@
 use crate::exercise::{CompiledExercise, Exercise, Mode, State};
 use console::style;
 use indicatif::{ProgressBar, ProgressStyle};
-use std::{env, time::Duration};
+use std::{env, path::PathBuf, time::Duration};
 
 // Verify that the provided container of Exercise objects
 // can be compiled and run without any failures.
@@ -159,9 +159,42 @@ fn compile<'a>(
                 exercise
             );
             println!("{}", output.stderr);
+            open_exercise_in_vs_code(&exercise.path);
             Err(())
         }
     }
+}
+
+fn open_exercise_in_vs_code(exercise_path: &PathBuf) {
+    let repo_root_path = std::env::current_dir().expect("Process CWD");
+
+    // create absolute path buffer
+    let exercise_abs_path = repo_root_path
+        .join(exercise_path)
+        .canonicalize()
+        .expect("Canonical path");
+
+    // convert to a string
+    let exercise_abs_path = exercise_abs_path.to_str().expect("Path is valid as string");
+
+    /*
+    #canonicalize adds a `\\?\` prefix, this might be for Windows to enable support for long paths
+    exceeding the MAX_PATH limitation (260 characters).
+
+    This prefix tells the Windows API to extend the path length limit but rust analyzer doesn't like this,
+    (ie it crashes when opening files with a path with that prefix) so we remove it in this case
+    */
+    let exercise_abs_path = exercise_abs_path
+        .strip_prefix(r"\\?\")
+        .unwrap_or(exercise_abs_path);
+
+    println!("Absolute path: {}", exercise_abs_path);
+
+    // open exercise in vs code
+    std::process::Command::new("cmd")
+        .args(&["/C", "code-insiders", exercise_abs_path])
+        .spawn()
+        .ok(); // ignore errors
 }
 
 fn prompt_for_completion(
