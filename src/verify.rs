@@ -137,6 +137,7 @@ fn compile_and_test(
                 exercise
             );
             println!("{}", output.stdout);
+            open_exercise_in_vs_code(&exercise.path);
             Err(())
         }
     }
